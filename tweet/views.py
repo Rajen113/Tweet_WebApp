@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -16,6 +17,7 @@ def tweet_list(request):
     tweets = Tweet.objects.all().order_by('-created_at')
     return render(request, 'tweet_list.html', {'tweets': tweets})
 
+@login_required
 def tweet_create(request):
     print(request.method)
     if request.method == 'POST':
@@ -34,8 +36,12 @@ def tweet_create(request):
         form = TweetForm()
     return render(request, 'tweet_form.html', {'form': form})
 
+@login_required
 def tweet_edit(request, pk):
-    tweet = get_object_or_404(Tweet, pk=pk, user=request.user)
+    tweet = get_object_or_404(Tweet, pk=pk)
+    if tweet.user != request.user:
+        messages.error(request, "You are not authorized to edit this tweet.")
+        return redirect('tweet_list')
     if request.method == 'POST':
         form = TweetForm(request.POST, request.FILES, instance=tweet)
         if form.is_valid():
@@ -47,6 +53,7 @@ def tweet_edit(request, pk):
         form = TweetForm(instance=tweet)
     return render(request, 'tweet_form.html', {'form': form})
 
+@login_required
 def tweet_delete(request, pk):
     tweet = get_object_or_404(Tweet, pk=pk, user=request.user)
     if request.method == 'POST':
