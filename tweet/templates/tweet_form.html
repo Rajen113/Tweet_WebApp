@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+
+{% block title %}Create Tweet{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            {% if form.instance.pk %}
+                <h2 class="mb-0">✏️ Edit Tweet</h2>
+            {% else %}
+                <h2 class="mb-0">📝 Create a New Tweet</h2>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success w-100">🚀 Post Tweet</button>
+</form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
