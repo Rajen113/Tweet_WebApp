@@ -1,12 +1,15 @@
 from django import forms
 from .models import Tweet 
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 class TweetForm(forms.ModelForm):
     class Meta:
         model = Tweet
         fields = ['text', 'photo']
 
-    class UserRegistrationForm(forms.Form):
-        username = forms.CharField(max_length=150)
-        email = forms.EmailField()
-        password = forms.CharField(widget=forms.PasswordInput)
+class UserRegistrationForm(UserCreationForm):
+        email = forms.EmailField(label='Email Address')
+        class Meta:
+            model = User
+            fields = ['username', 'email', 'password1', 'password2']

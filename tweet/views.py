@@ -1,11 +1,12 @@
 from django.shortcuts import render 
 from .models import Tweet
-from .forms import TweetForm
+from .forms import TweetForm, UserRegistrationForm
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 # Create your views here.
 
@@ -27,7 +28,6 @@ def tweet_create(request):
         print("Form data:", form.data)
         # breakpoint()  # Removed for production use
         if form.is_valid():
-            print("Form is valid, saving tweet")
             tweet = form.save(commit=False)
             tweet.user = request.user
             tweet.save()
@@ -66,26 +66,32 @@ def tweet_detail(request, pk):
     print(tweet)
     return render(request, 'tweet_detail.html', {'tweet': tweet})
 
-def signup_view(request):
-        if request.method == 'POST':
-            form = UserCreationForm(request.POST)
-            if form.is_valid():
-                user = form.save()
-                login(request, user)
-                return redirect('tweet_list')
-        else:
-            form = UserCreationForm()
-        return render(request, 'signup.html', {'form': form})
 
-def login_view(request):
-        if request.method == 'POST':
-            form = AuthenticationForm(request, data=request.POST)
-            if form.is_valid():
-                user = form.get_user()
-                login(request, user)
-                return redirect('tweet_list')
-            else:
-                messages.error(request, "Invalid username or password.")
+def register(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        # Create user with hashed password
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+
+        print("User created:", username,password)
+
+    return render(request, 'signup.html')
+
+
+def login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, "Login successful.")
+            return redirect('tweet_list')
         else:
-            form = AuthenticationForm()
-        return render(request, 'login.html', {'form': form})
+            messages.error(request, "Invalid username or password.")
+    else:
+        form = AuthenticationForm()
+    return render(request, 'registration/login.html', {'form': form})
